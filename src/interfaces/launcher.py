@@ -13,7 +13,7 @@ def _project_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
-def _build_command(no_run: bool) -> list[str]:
+def _build_command(no_run: bool, verbose: bool) -> list[str]:
     root = _project_root()
     system = platform.system().lower()
 
@@ -30,6 +30,8 @@ def _build_command(no_run: bool) -> list[str]:
         ]
         if no_run:
             command.append("-NoRun")
+        if verbose:
+            command.append("-VerboseOutput")
         return command
 
     script = root / "infra" / "scripts" / "bootstrap-linux.sh"
@@ -48,6 +50,11 @@ def main() -> None:
         action="store_true",
         help="Solo instala/verifica, sin abrir la aplicacion al final",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Muestra salida detallada del bootstrap (en Windows)",
+    )
     args = parser.parse_args()
 
     print("+--------------------------------------------------------------+")
@@ -55,7 +62,7 @@ def main() -> None:
     print("| Deteccion automatica de sistema y arranque guiado           |")
     print("+--------------------------------------------------------------+")
 
-    command = _build_command(no_run=args.no_run)
+    command = _build_command(no_run=args.no_run, verbose=args.verbose)
     print("Ejecutando:", " ".join(command))
 
     result = subprocess.run(command, cwd=str(_project_root()))

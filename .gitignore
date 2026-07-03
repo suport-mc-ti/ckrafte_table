@@ -8,6 +8,8 @@ __pycache__/
 /sessions/
 /output/*
 !/output/.gitkeep
+/project_runs/
+/logs/bootstrap/
 *.egg-info/
 dist/
 build/

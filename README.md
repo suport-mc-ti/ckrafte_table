@@ -41,6 +41,18 @@ Ejecutar pipeline por CLI:
 python main.py --provider ollama --lang espanol --req "API local para biblioteca comunitaria con catalogo, prestamos y devoluciones"
 ```
 
+Modo interactivo rapido (1 prompt):
+
+```bash
+python main.py --provider ollama --lang espanol
+```
+
+Menu completo (incluye diagrama visual en pestana):
+
+```bash
+python main.py --provider ollama --lang espanol --menu
+```
+
 Si usas Ollama, valida modelos base:
 
 ```bash
@@ -259,10 +271,22 @@ Arranque guiado:
 iniciar.bat
 ```
 
+Arranque con salida detallada (verbose):
+
+```powershell
+iniciar.bat --verbose
+```
+
 Bootstrap directo:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File infra/scripts/bootstrap-windows.ps1
+```
+
+Bootstrap sin ejecutar la app al final:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File infra/scripts/bootstrap-windows.ps1 -NoRun
 ```
 
 Modo no interactivo con requerimiento:
@@ -305,7 +329,28 @@ python3 main.py --provider ollama --lang espanol --req "API local para bibliotec
 2. Levantar backend y frontend con tareas de VS Code (`dev:all`) o en terminal separada.
 3. Levantar proveedor local de modelos (Ollama).
 4. Ejecutar pipeline con `main.py` pasando `--req`.
-5. Revisar resultados en la carpeta `output`.
+5. Revisar resultados en la carpeta `project_runs/<slug>/<session_id>/output`.
+
+## Estructura de salidas por proyecto
+
+Cada ejecucion nueva crea una carpeta unica por proyecto y sesion:
+
+```text
+project_runs/
+    <slug-del-proyecto>/
+        <session_id>/
+            session.json
+            visual_flow.html
+            output/
+                01_plan_tecnico.md
+                02_backend_code.md
+                ...
+```
+
+En el menu completo tienes dos vistas de seguimiento:
+
+1. Diagrama ASCII en terminal (opcion 3).
+2. Diagrama visual minimalista/tech en pestana del navegador (opcion 6).
 
 ## Tabla rapida Windows vs Linux
 

@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-	[switch]$NoRun
+	[switch]$NoRun,
+	[switch]$VerboseOutput
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,36 +16,63 @@ catch {
 Clear-Host
 Write-Host "+------------------------------------------------------------------+" -ForegroundColor Cyan
 Write-Host "|                  AGENTE-S / BOOTSTRAP WINDOWS                   |" -ForegroundColor Cyan
-Write-Host "|   Instalacion, verificacion y arranque automatico de la app     |" -ForegroundColor Cyan
+Write-Host "|   Instalacion y verificacion (modo resumido por defecto)        |" -ForegroundColor Cyan
 Write-Host "+------------------------------------------------------------------+" -ForegroundColor Cyan
 Write-Host ""
 
 Set-Location -Path (Resolve-Path "$PSScriptRoot\..\..").Path
+
+$logDir = Join-Path (Resolve-Path ".").Path "logs\bootstrap"
+New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+$logFile = Join-Path $logDir ("bootstrap_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".log")
+
+function Invoke-Cmd {
+	param(
+		[string]$Label,
+		[string]$FilePath,
+		[string[]]$Arguments
+	)
+
+	Write-Host "   - $Label..." -ForegroundColor Yellow
+	if ($VerboseOutput) {
+		& $FilePath @Arguments
+	}
+	else {
+		"`n### $Label`n$FilePath $($Arguments -join ' ')" | Out-File -FilePath $logFile -Append -Encoding utf8
+		& $FilePath @Arguments *>> $logFile
+	}
+
+	if ($LASTEXITCODE -ne 0) {
+		throw "Fallo en '$Label' (codigo $LASTEXITCODE)."
+	}
+	Write-Host "     OK" -ForegroundColor Green
+}
 
 function Test-Command($name) {
 	return [bool](Get-Command $name -ErrorAction SilentlyContinue)
 }
 
 Write-Host "0) Verificando herramientas basicas..." -ForegroundColor Yellow
+$missing = @()
 foreach ($cmd in @("python", "npm", "git")) {
 	if (Test-Command $cmd) {
 		Write-Host "   OK: $cmd" -ForegroundColor Green
 	} else {
 		Write-Host "   FALTA: $cmd" -ForegroundColor Red
+		$missing += $cmd
 	}
 }
+if ($missing.Count -gt 0) {
+	throw "Faltan herramientas basicas: $($missing -join ', ')"
+}
 
-Write-Host "1) Actualizando pip..." -ForegroundColor Yellow
-python -m pip install --upgrade pip
+Write-Host "1) Preparando dependencias..." -ForegroundColor Yellow
+Invoke-Cmd -Label "Actualizar pip" -FilePath "python" -Arguments @("-m", "pip", "install", "--upgrade", "pip")
+Invoke-Cmd -Label "Instalar dependencias Python" -FilePath "python" -Arguments @("-m", "pip", "install", "-r", "requirements.txt")
+Invoke-Cmd -Label "Instalar paquete editable" -FilePath "python" -Arguments @("-m", "pip", "install", "-e", ".")
+Invoke-Cmd -Label "Instalar dependencias Frontend" -FilePath "npm" -Arguments @("--prefix", "frontend", "install")
 
-Write-Host "2) Instalando dependencias Python..." -ForegroundColor Yellow
-python -m pip install -r requirements.txt
-python -m pip install -e .
-
-Write-Host "3) Instalando dependencias Frontend..." -ForegroundColor Yellow
-npm --prefix frontend install
-
-Write-Host "4) Verificando Ollama y modelos recomendados..." -ForegroundColor Yellow
+Write-Host "2) Verificando Ollama y modelos recomendados..." -ForegroundColor Yellow
 if (Test-Command "ollama") {
 	Write-Host "   OK: ollama encontrado" -ForegroundColor Green
 
@@ -74,7 +102,7 @@ else {
 	Write-Host "   Instala Ollama para usar el modo local de IA" -ForegroundColor Yellow
 }
 
-Write-Host "5) Configurando entorno local para Ollama..." -ForegroundColor Yellow
+Write-Host "3) Configurando entorno local para Ollama..." -ForegroundColor Yellow
 $env:OPENAI_PROVIDER = "ollama"
 $env:OPENAI_API_KEY = "ollama"
 $env:OPENAI_BASE_URL = "http://localhost:11434/v1"
@@ -86,6 +114,9 @@ Write-Host ""
 Write-Host "Listo. Siguientes pasos:" -ForegroundColor Green
 Write-Host "- Ejecuta: agente-s-start" -ForegroundColor Green
 Write-Host "- O ejecuta: python main.py --provider ollama --lang espanol" -ForegroundColor Green
+if (-not $VerboseOutput) {
+	Write-Host "- Log detallado: $logFile" -ForegroundColor DarkGray
+}
 
 if (-not $NoRun) {
 	Write-Host "" 

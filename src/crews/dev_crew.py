@@ -7,6 +7,7 @@ import asyncio
 import os
 import re
 from pathlib import Path
+from contextlib import suppress
 
 from rich.console import Console
 from agents import Runner, RunResult
@@ -16,6 +17,49 @@ from src.agents.team import get_agents
 from src.sessions.manager import create_session, save_session
 
 console = Console()
+
+STEP_LABELS = {
+    "pm": "Fullstack Lead",
+    "backend": "Backend Developer",
+    "frontend": "Frontend Developer",
+    "qa": "QA Engineer",
+    "security": "Security Auditor",
+    "devops": "DevOps Engineer",
+    "tech_writer": "Tech Writer",
+}
+
+
+def _build_progress_bar(done: int, total: int, width: int = 24) -> str:
+    if total <= 0:
+        return "[------------------------]"
+    ratio = done / total
+    filled = int(ratio * width)
+    return "[" + ("#" * filled) + ("-" * (width - filled)) + "]"
+
+
+def _print_pipeline_progress(session: dict, heading: str = "Estado") -> None:
+    steps = session.get("steps", {})
+    total = len(steps)
+    done = sum(1 for s in steps.values() if s == "completed")
+    running = sum(1 for s in steps.values() if s == "running")
+    failed = sum(1 for s in steps.values() if s == "failed")
+    bar = _build_progress_bar(done, total)
+    pct = int((done / total) * 100) if total else 0
+    console.print(
+        f"[bold blue]{heading}[/bold blue]  {bar}  {done}/{total} ({pct}%)  "
+        f"[yellow]en ejecucion: {running}[/yellow]  [red]fallidos: {failed}[/red]"
+    )
+
+
+async def _heartbeat(step_label: str, stop_event: asyncio.Event) -> None:
+    elapsed = 0
+    while not stop_event.is_set():
+        await asyncio.sleep(12)
+        elapsed += 12
+        if not stop_event.is_set():
+            console.print(
+                f"[dim]   trabajando {step_label}... {elapsed}s transcurridos[/dim]"
+            )
 
 
 def _output_path(session: dict, filename: str) -> Path:
@@ -38,12 +82,17 @@ async def _run_agent(agent, input_text: str, step_label: str,
     console.print(f"\n[bold cyan]>> {step_label}[/bold cyan]")
     session["steps"][step_key] = "running"
     save_session(session)
+    _print_pipeline_progress(session, heading="Progreso")
+
+    stop_event = asyncio.Event()
+    heartbeat_task = asyncio.create_task(_heartbeat(step_label, stop_event))
     try:
         result = await Runner.run(agent, input=input_text)
         console.print(f"[green]   Completado[/green]")
         session["steps"][step_key] = "completed"
         session["error"] = None
         save_session(session)
+        _print_pipeline_progress(session, heading="Progreso")
         return result
     except RateLimitError as exc:
         msg = str(exc)
@@ -59,7 +108,20 @@ async def _run_agent(agent, input_text: str, step_label: str,
             f"'Continuar sesion' para reanudar."
         )
         save_session(session)
+        _print_pipeline_progress(session, heading="Progreso")
         raise
+    except Exception as exc:
+        console.print(f"[red]   Fallo: {exc}[/red]")
+        session["steps"][step_key] = "failed"
+        session["error"] = f"Error en '{step_label}': {exc}"
+        save_session(session)
+        _print_pipeline_progress(session, heading="Progreso")
+        raise
+    finally:
+        stop_event.set()
+        heartbeat_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await heartbeat_task
 
 
 async def run_dev_pipeline(requirement: str, output_language: str,

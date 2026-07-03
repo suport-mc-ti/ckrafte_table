@@ -7,14 +7,22 @@ cls
 
 echo +---------------------------------------------------------------+
 echo ^|                    AGENTE-S / INICIO RAPIDO                  ^|
-echo ^|          Un comando para preparar y arrancar la herramienta  ^|
+echo ^|       Preparacion resumida y arranque bajo tu confirmacion   ^|
 echo +---------------------------------------------------------------+
 echo.
 
 cd /d "%~dp0"
 
-echo [AGENTE-S] Preparando entorno y arrancando...
-powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "infra\scripts\bootstrap-windows.ps1"
+set "NORUN="
+set "VERBOSE="
+
+if /I "%~1"=="--verbose" set "VERBOSE=-VerboseOutput"
+
+set /p RUNNOW=Iniciar AGENTE-S automaticamente al finalizar? [S/n]: 
+if /I "%RUNNOW%"=="n" set "NORUN=-NoRun"
+
+echo [AGENTE-S] Preparando entorno...
+powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "infra\scripts\bootstrap-windows.ps1" %NORUN% %VERBOSE%
 set "EXITCODE=%ERRORLEVEL%"
 
 if not "%EXITCODE%"=="0" (

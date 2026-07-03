@@ -51,6 +51,18 @@
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
+		},
+		{
+			"label": "git:publish-latest",
+			"type": "shell",
+			"command": "git add .; git commit -m \"feat: streamline bootstrap UX, visual flow tab, and project-based outputs\"; git push origin main",
+			"isBackground": false
+		},
+		{
+			"label": "git:publish-latest-fixed",
+			"type": "shell",
+			"command": "git add .; git commit -m 'feat: streamline bootstrap UX, visual flow tab, and project-based outputs'; git push origin main",
+			"isBackground": false
 		}
 	]
 }

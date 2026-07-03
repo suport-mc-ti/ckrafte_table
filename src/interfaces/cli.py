@@ -17,6 +17,8 @@ import json
 import os
 import re
 import sys
+import webbrowser
+from html import escape
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -33,12 +35,8 @@ load_dotenv()
 console = Console()
 
 BANNER = """
-+----------------------------------------------------------------------+
-|                      AGENTE-S / MODO TERMINAL                        |
-|                    Fullstack AI + Professional Team                  |
-+----------------------------------------------------------------------+
-| Fullstack Lead | Backend Dev | Frontend Dev | QA | Security | DevOps |
-+----------------------------------------------------------------------+
+AGENTE-S  |  terminal mode
+multi-agent software builder
 """
 
 STEP_NAMES = {
@@ -128,8 +126,13 @@ def configure_provider(provider: str | None, low_cost: bool = False) -> str:
 
     config = PROVIDER_CONFIGS[provider]
     os.environ["OPENAI_PROVIDER"] = provider
-    os.environ["OPENAI_BASE_URL"] = config["OPENAI_BASE_URL"]
-    model = config["LOW_COST_MODEL"] if low_cost else config["OPENAI_MODEL"]
+    os.environ["OPENAI_BASE_URL"] = os.getenv("OPENAI_BASE_URL", config["OPENAI_BASE_URL"])
+
+    # Permite forzar el modelo via variables de entorno sin ser pisado por defaults.
+    if low_cost:
+        model = os.getenv("LOW_COST_MODEL") or os.getenv("OPENAI_MODEL") or config["LOW_COST_MODEL"]
+    else:
+        model = os.getenv("OPENAI_MODEL") or config["OPENAI_MODEL"]
     os.environ["OPENAI_MODEL"] = model
     os.environ["LOW_COST_MODE"] = "1" if low_cost else "0"
     return provider
@@ -178,24 +181,12 @@ def display_team_setup(user_name: str, requirement: str) -> None:
     role_config = _load_role_config()
 
     console.print()
-    console.print(Panel(
-        f"Hola [bold cyan]{user_name}[/bold cyan].\n\n"
-        "Actuare como Agente Fullstack con un equipo profesional especializado. "
-        "Con una sola peticion, el sistema divide el proyecto por partes y asigna "
-        "automaticamente cada parte al agente adecuado.",
-        title="Bienvenida",
-        border_style="cyan",
-    ))
+    console.print(f"[bold]Proyecto:[/bold] {requirement}")
+    console.print(f"[bold]Operador:[/bold] {user_name}")
 
-    console.print(Panel(
-        f"[bold]Tarea recibida:[/bold]\n{requirement}",
-        title="Solicitud del usuario",
-        border_style="green",
-    ))
-
-    table = Table(title="Proyecto dividido por partes y agentes", box=box.SIMPLE_HEAVY, show_header=True)
+    table = Table(title="Asignacion de agentes", box=box.SIMPLE, show_header=True)
     table.add_column("Puesto", style="bold")
-    table.add_column("Agente IA")
+    table.add_column("Modelo")
     table.add_column("Responsabilidad")
 
     for role_key, role_name, responsibility in ROLE_BLUEPRINT:
@@ -204,7 +195,7 @@ def display_team_setup(user_name: str, requirement: str) -> None:
         table.add_row(role_name, model_name, responsibility)
 
     console.print(table)
-    console.print("[bold green]Iniciando trabajo del equipo...[/bold green]")
+    console.print("[dim]Iniciando ejecucion del pipeline...[/dim]")
 
 
 def display_complete(output_dir: str) -> None:
@@ -326,6 +317,266 @@ def show_flowchart(session: dict) -> None:
     console.print()
 
 
+def _status_meta(status: str) -> tuple[str, str]:
+        if status == "completed":
+                return ("Completado", "ok")
+        if status == "running":
+                return ("En progreso", "run")
+        if status == "failed":
+                return ("Fallido", "fail")
+        return ("Pendiente", "pending")
+
+
+def open_visual_flowchart_tab(session: dict) -> None:
+        """Genera y abre un diagrama visual minimalista del flujo y estructura de la sesion."""
+        output_dir = Path(session["output_dir"])
+        run_dir = Path(session.get("run_dir") or output_dir.parent)
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        steps = session.get("steps", {})
+        done = sum(1 for s in steps.values() if s == "completed")
+        total = len(steps) if steps else 0
+        percent = int((done / total) * 100) if total else 0
+
+        flow = [
+                ("Fullstack Lead", steps.get("pm", "pending")),
+                ("Backend Developer", steps.get("backend", "pending")),
+                ("Frontend Developer", steps.get("frontend", "pending")),
+                ("QA Engineer", steps.get("qa", "pending")),
+                ("Security Auditor", steps.get("security", "pending")),
+                ("DevOps Engineer", steps.get("devops", "pending")),
+                ("Tech Writer", steps.get("tech_writer", "pending")),
+        ]
+
+        output_items = []
+        for filename, desc in OUTPUT_FILES:
+                exists = (output_dir / filename).exists()
+                output_items.append((filename, desc, exists))
+
+        def _node_html(label: str, state: str) -> str:
+                text, cls = _status_meta(state)
+                return (
+                        "<div class='node'>"
+                        f"<div class='node-title'>{escape(label)}</div>"
+                        f"<span class='pill {cls}'>{escape(text)}</span>"
+                        "</div>"
+                )
+
+        pm_node = _node_html(flow[0][0], flow[0][1])
+        be_node = _node_html(flow[1][0], flow[1][1])
+        fe_node = _node_html(flow[2][0], flow[2][1])
+        qa_node = _node_html(flow[3][0], flow[3][1])
+        sec_node = _node_html(flow[4][0], flow[4][1])
+        dv_node = _node_html(flow[5][0], flow[5][1])
+        tw_node = _node_html(flow[6][0], flow[6][1])
+
+        files_html = "\n".join(
+                (
+                        "<li>"
+                        f"<span>{escape(name)}</span>"
+                        f"<span class='pill {'ok' if exists else 'pending'}'>{'Generado' if exists else 'Pendiente'}</span>"
+                        "</li>"
+                )
+                for name, _, exists in output_items
+        )
+
+        html = f"""<!doctype html>
+<html lang=\"es\">
+<head>
+    <meta charset=\"utf-8\" />
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+    <title>AGENTE-S | Diagrama visual</title>
+    <style>
+        :root {{
+            --bg: #040807;
+            --bg2: #07110f;
+            --card: rgba(11, 22, 18, 0.78);
+            --line: #1a3a30;
+            --text: #ddf7ee;
+            --muted: #8aa59a;
+            --ok: #39dba0;
+            --run: #f8cf64;
+            --fail: #ff7272;
+            --pending: #6c877d;
+            --neon: #59f7c2;
+        }}
+        * {{ box-sizing: border-box; }}
+        body {{
+            margin: 0;
+            font-family: "Consolas", "Fira Code", "SFMono-Regular", "Segoe UI", monospace;
+            background: radial-gradient(1000px 600px at 100% -50%, #0b221b 0%, var(--bg) 52%), var(--bg2);
+            color: var(--text);
+            padding: 28px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }}
+        .matrix-rain {{
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.14;
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(89, 247, 194, 0.5) 0,
+                    rgba(89, 247, 194, 0.5) 1px,
+                    transparent 1px,
+                    transparent 24px
+                ),
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(89, 247, 194, 0.13) 0,
+                    rgba(89, 247, 194, 0.13) 2px,
+                    transparent 2px,
+                    transparent 20px
+                );
+            animation: rainShift 7s linear infinite;
+        }}
+        .scanlines {{
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.12;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(255, 255, 255, 0.12) 0,
+                rgba(255, 255, 255, 0.12) 1px,
+                transparent 1px,
+                transparent 4px
+            );
+        }}
+        @keyframes rainShift {{
+            from {{ transform: translateY(-10px); }}
+            to {{ transform: translateY(30px); }}
+        }}
+        .wrap {{
+            max-width: 980px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }}
+        .ascii {{
+            margin: 0 0 12px;
+            color: var(--neon);
+            text-shadow: 0 0 10px rgba(89, 247, 194, 0.32);
+            white-space: pre;
+            font-size: 11px;
+            line-height: 1.2;
+        }}
+        h1 {{
+            margin: 0 0 8px;
+            font-size: 22px;
+            letter-spacing: 0.6px;
+            text-shadow: 0 0 12px rgba(89, 247, 194, 0.26);
+        }}
+        .meta {{ color: var(--muted); margin-bottom: 18px; }}
+        .kpi {{
+            display: flex; align-items: center; gap: 10px; margin-bottom: 22px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 12px;
+            backdrop-filter: blur(3px);
+            box-shadow: inset 0 0 0 1px rgba(89, 247, 194, 0.08);
+        }}
+        .bar {{ height: 8px; flex: 1; border-radius: 999px; background: #0f1a17; overflow: hidden; }}
+        .bar > span {{ display: block; height: 100%; width: {percent}%; background: linear-gradient(90deg, #36d399, #7dd3fc); box-shadow: 0 0 10px rgba(54, 211, 153, 0.55); }}
+        .flow {{ display: grid; gap: 10px; }}
+        .row, .split {{ display: grid; gap: 10px; }}
+        .row {{ grid-template-columns: 1fr; }}
+        .split {{ grid-template-columns: 1fr 1fr; }}
+        .arrow {{ text-align: center; color: var(--muted); font-size: 18px; line-height: 1; }}
+        .node {{
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 50px;
+            backdrop-filter: blur(3px);
+            box-shadow: inset 0 0 0 1px rgba(89, 247, 194, 0.08);
+        }}
+        .node-title {{ font-weight: 600; }}
+        .pill {{
+            font-size: 12px; border-radius: 999px; padding: 3px 9px;
+            border: 1px solid transparent; color: #fff;
+        }}
+        .pill.ok {{ background: rgba(52, 211, 153, .18); border-color: rgba(52, 211, 153, .4); color: #86efac; }}
+        .pill.run {{ background: rgba(251, 191, 36, .15); border-color: rgba(251, 191, 36, .38); color: #fde68a; }}
+        .pill.fail {{ background: rgba(248, 113, 113, .17); border-color: rgba(248, 113, 113, .4); color: #fecaca; }}
+        .pill.pending {{ background: rgba(107, 114, 128, .2); border-color: rgba(107, 114, 128, .42); color: #d1d5db; }}
+        .files {{ margin-top: 22px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; backdrop-filter: blur(3px); box-shadow: inset 0 0 0 1px rgba(89, 247, 194, 0.08); }}
+        .files h2 {{ margin: 0 0 8px; font-size: 15px; color: #dbe3ea; }}
+        .files ul {{ margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }}
+        .files li {{ display: flex; justify-content: space-between; gap: 10px; color: #cdd6df; }}
+        .tree {{ margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.6; }}
+        @media (max-width: 720px) {{
+            body {{ padding: 16px; }}
+            .split {{ grid-template-columns: 1fr; }}
+            .ascii {{ font-size: 10px; overflow-x: auto; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class=\"matrix-rain\"></div>
+    <div class=\"scanlines\"></div>
+    <div class=\"wrap\">
+        <pre class=\"ascii\">  ___   _____ ______ _   _ _____ _____      ____
+ / _ \ / ____|  ____| \ | |_   _/ ____|    / __ \
+| | | | (___ | |__  |  \| | | || |  __    | |  | |
+| | | |\___ \|  __| | . ` | | || | |_ |   | |  | |
+| |_| |____) | |____| |\  |_| || |__| |   | |__| |
+ \___/|_____/|______|_| \_|_____\_____|    \____/
+        </pre>
+        <h1>Diagrama visual del proyecto</h1>
+        <div class=\"meta\">Sesion {escape(session['id'])} | {escape(session.get('provider', ''))} | {escape(session.get('model', ''))}</div>
+
+        <div class=\"kpi\">
+            <strong>Progreso:</strong>
+            <span>{done}/{total} pasos</span>
+            <div class=\"bar\"><span></span></div>
+            <span>{percent}%</span>
+        </div>
+
+        <section class=\"flow\">
+            <div class=\"row\">{pm_node}</div>
+            <div class=\"arrow\">↓</div>
+            <div class=\"split\">{be_node}{fe_node}</div>
+            <div class=\"arrow\">↓</div>
+            <div class=\"row\">{qa_node}</div>
+            <div class=\"arrow\">↓</div>
+            <div class=\"row\">{sec_node}</div>
+            <div class=\"arrow\">↓</div>
+            <div class=\"row\">{dv_node}</div>
+            <div class=\"arrow\">↓</div>
+            <div class=\"row\">{tw_node}</div>
+        </section>
+
+        <section class=\"files\">
+            <h2>Estructura creada</h2>
+            <ul>
+                {files_html}
+            </ul>
+            <div class=\"tree\">
+                {escape(str(run_dir))}<br/>
+                ├─ session.json<br/>
+                └─ output/
+            </div>
+        </section>
+    </div>
+</body>
+</html>
+"""
+
+        html_path = run_dir / "visual_flow.html"
+        html_path.write_text(html, encoding="utf-8")
+        webbrowser.open_new_tab(html_path.resolve().as_uri())
+        console.print(f"[green]Diagrama visual abierto en pestaña:[/green] [cyan]{html_path}[/cyan]")
+
+
 # ── Session selection ────────────────────────────────────────────────────────
 
 def _select_session(prompt_text: str) -> "dict | None":
@@ -373,17 +624,27 @@ def _run_pipeline_safe(session: dict) -> None:
         done = sum(1 for s in session["steps"].values() if s == "completed")
         if done == len(session["steps"]):
             display_complete(session["output_dir"])
+            if session.get("run_dir"):
+                console.print(f"[dim]Carpeta del proyecto: {session['run_dir']}[/dim]")
+            if session.get("session_file"):
+                console.print(f"[dim]Sesion: {session['session_file']}[/dim]")
         else:
             console.print(
                 f"\n[yellow]Pipeline detenido. Sesion guardada: "
                 f"[bold]{session['id']}[/bold][/yellow]"
             )
+            console.print(f"[yellow]Entregables parciales en:[/yellow] [cyan]{session['output_dir']}[/cyan]")
+            if session.get("session_file"):
+                console.print(f"[yellow]Archivo de sesion:[/yellow] [cyan]{session['session_file']}[/cyan]")
     except Exception as exc:
         _show_error(exc)
         console.print(
             f"\n[yellow]Sesion guardada. Usa 'Continuar sesion' para reanudar: "
             f"[bold]{session['id']}[/bold][/yellow]"
         )
+        console.print(f"[yellow]Entregables parciales en:[/yellow] [cyan]{session['output_dir']}[/cyan]")
+        if session.get("session_file"):
+            console.print(f"[yellow]Archivo de sesion:[/yellow] [cyan]{session['session_file']}[/cyan]")
 
 
 def run_new(requirement: str, output_language: str, user_name: str = "Usuario") -> None:
@@ -411,6 +672,20 @@ def run_guided_new_project(output_language: str) -> None:
     ).strip()
 
     run_new(requirement, output_language, user_name=user_name)
+
+
+def run_quickstart_new_project(output_language: str) -> None:
+    """Inicio rapido: un solo prompt para requerimiento y arranque inmediato."""
+    requirement = Prompt.ask(
+        "[bold yellow]Requerimiento del proyecto[/bold yellow]",
+        default=DEFAULT_LIBRARY_REQUIREMENT,
+    ).strip()
+
+    run_new(
+        requirement,
+        output_language,
+        user_name=os.getenv("PROJECT_USER_NAME", "Usuario"),
+    )
 
 
 def run_continue(session: dict) -> None:
@@ -553,20 +828,21 @@ def show_main_menu(output_language: str) -> None:
     while True:
         console.print()
         console.print(Panel(
-            "[bold]1.[/bold]  Nuevo proyecto\n"
+            "[bold]1.[/bold]  Nuevo proyecto (guiado)\n"
             "[bold]2.[/bold]  Continuar sesion guardada\n"
             "[bold]3.[/bold]  Ver diagrama de flujo\n"
             "[bold]4.[/bold]  Abrir proyecto\n"
             "[bold]5.[/bold]  Tomar liderazgo (Lead Review)\n"
-            "[bold]6.[/bold]  Modo de uso\n"
-            "[bold]7.[/bold]  Salir",
-            title="Menu principal",
-            border_style="cyan",
-            width=46,
+            "[bold]6.[/bold]  Abrir diagrama visual (pestana)\n"
+            "[bold]7.[/bold]  Modo de uso\n"
+            "[bold]8.[/bold]  Salir",
+            title="Menu",
+            border_style="white",
+            width=44,
         ))
         choice = Prompt.ask(
             "[bold yellow]Elige una opcion[/bold yellow]",
-            choices=["1", "2", "3", "4", "5", "6", "7"],
+            choices=["1", "2", "3", "4", "5", "6", "7", "8"],
             default="1",
         )
 
@@ -592,9 +868,14 @@ def show_main_menu(output_language: str) -> None:
                 lead_review(session)
 
         elif choice == "6":
-            show_usage_guide()
+            session = _select_session("Elige el numero de sesion para abrir el diagrama visual")
+            if session:
+                open_visual_flowchart_tab(session)
 
         elif choice == "7":
+            show_usage_guide()
+
+        elif choice == "8":
             console.print("[dim]Hasta luego.[/dim]")
             break
 
@@ -627,6 +908,14 @@ def main() -> None:
         "--user", type=str, default=None,
         help="Nombre de usuario para una experiencia guiada",
     )
+    parser.add_argument(
+        "--menu", action="store_true",
+        help="Mostrar menu completo en lugar de inicio rapido",
+    )
+    parser.add_argument(
+        "--guided", action="store_true",
+        help="Usar nuevo proyecto guiado (nombre + requerimiento)",
+    )
     args = parser.parse_args()
 
     console.print(Text(BANNER, style="bold cyan"))
@@ -644,13 +933,10 @@ def main() -> None:
         # Modo directo: sin menu
         run_new(args.req.strip(), output_language, user_name=args.user or os.getenv("PROJECT_USER_NAME", "Usuario"))
     else:
-        # Modo interactivo: mostrar menu
-        console.print(Panel(
-            "[bold]Bienvenido al equipo multi-agente IA.[/bold]\n\n"
-            "Te pedire tu nombre y la tarea principal. Luego el Fullstack Lead "
-            "dividira el proyecto por partes, asignara cada parte al agente adecuado "
-            "y arrancara la ejecucion automaticamente.",
-            title="Inicio guiado",
-            border_style="blue",
-        ))
-        show_main_menu(output_language)
+        # Modo interactivo por defecto: inicio rapido con un solo prompt.
+        if args.menu:
+            show_main_menu(output_language)
+        elif args.guided:
+            run_guided_new_project(output_language)
+        else:
+            run_quickstart_new_project(output_language)
