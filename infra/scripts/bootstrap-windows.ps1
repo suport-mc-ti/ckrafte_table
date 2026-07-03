@@ -34,12 +34,29 @@ function Invoke-Cmd {
 	)
 
 	Write-Host "   - $Label..." -ForegroundColor Yellow
-	if ($VerboseOutput) {
-		& $FilePath @Arguments
+	# En algunos entornos, mensajes en stderr (warnings) se elevan a excepcion.
+	# Aqui consideramos fallo solo cuando el codigo de salida sea distinto de 0.
+	$previousNativeErrorSetting = $null
+	$hadNativeErrorSetting = $false
+	if (Get-Variable -Name PSNativeCommandUseErrorActionPreference -ErrorAction SilentlyContinue) {
+		$hadNativeErrorSetting = $true
+		$previousNativeErrorSetting = $PSNativeCommandUseErrorActionPreference
+		$PSNativeCommandUseErrorActionPreference = $false
 	}
-	else {
-		"`n### $Label`n$FilePath $($Arguments -join ' ')" | Out-File -FilePath $logFile -Append -Encoding utf8
-		& $FilePath @Arguments *>> $logFile
+
+	try {
+		if ($VerboseOutput) {
+			& $FilePath @Arguments
+		}
+		else {
+			"`n### $Label`n$FilePath $($Arguments -join ' ')" | Out-File -FilePath $logFile -Append -Encoding utf8
+			& $FilePath @Arguments *>> $logFile
+		}
+	}
+	finally {
+		if ($hadNativeErrorSetting) {
+			$PSNativeCommandUseErrorActionPreference = $previousNativeErrorSetting
+		}
 	}
 
 	if ($LASTEXITCODE -ne 0) {
