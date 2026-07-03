@@ -307,6 +307,20 @@ python3 main.py --provider ollama --lang espanol --req "API local para bibliotec
 4. Ejecutar pipeline con `main.py` pasando `--req`.
 5. Revisar resultados en la carpeta `output`.
 
+## Tabla rapida Windows vs Linux
+
+| Tarea | Windows | Linux |
+|---|---|---|
+| Bootstrap completo | `iniciar.bat` o `powershell -ExecutionPolicy Bypass -File infra/scripts/bootstrap-windows.ps1` | `bash infra/scripts/bootstrap-linux.sh` |
+| Solo instalar/verificar | `powershell -ExecutionPolicy Bypass -File infra/scripts/bootstrap-windows.ps1 -NoRun` | `bash infra/scripts/bootstrap-linux.sh --no-run` |
+| Crear venv backend | `python -m venv backend/.venv` | `python3 -m venv backend/.venv` |
+| Instalar req backend | `backend/.venv/Scripts/pip install -r backend/requirements.txt` | `backend/.venv/bin/pip install -r backend/requirements.txt` |
+| Ejecutar backend | `backend/.venv/Scripts/python backend/app.py` | `backend/.venv/bin/python backend/app.py` |
+| Ejecutar frontend | `cd frontend && npm install && npm run dev` | `cd frontend && npm install && npm run dev` |
+| Variables de entorno Ollama | `$env:OPENAI_BASE_URL="http://localhost:11434/v1"` | `export OPENAI_BASE_URL="http://localhost:11434/v1"` |
+| Pipeline directo | `python main.py --provider ollama --lang espanol --req "..."` | `python3 main.py --provider ollama --lang espanol --req "..."` |
+| Script de arranque all-in-one | `infra/scripts/dev-all.ps1` | `infra/scripts/bootstrap-linux.sh` |
+
 ## CI/CD gratuito
 
 El workflow `.github/workflows/ci.yml` ejecuta:
