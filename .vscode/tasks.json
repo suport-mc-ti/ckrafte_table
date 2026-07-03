@@ -53,15 +53,9 @@
 			"group": "build"
 		},
 		{
-			"label": "git:publish-latest",
+			"label": "git:cleanup-temporary-task-commit",
 			"type": "shell",
-			"command": "git add .; git commit -m \"feat: streamline bootstrap UX, visual flow tab, and project-based outputs\"; git push origin main",
-			"isBackground": false
-		},
-		{
-			"label": "git:publish-latest-fixed",
-			"type": "shell",
-			"command": "git add .; git commit -m 'feat: streamline bootstrap UX, visual flow tab, and project-based outputs'; git push origin main",
+			"command": "git add .vscode/tasks.json; git commit -m 'chore: remove temporary git publish tasks'; git push origin main",
 			"isBackground": false
 		}
 	]
