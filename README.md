@@ -186,7 +186,9 @@ Integracion operativa en este repositorio:
 1. Instala Ollama.
 2. Ejecuta `ollama serve`.
 3. Descarga los modelos que usa el workspace.
-4. Configura estas variables de entorno antes de correr `main.py`:
+4. Configura estas variables de entorno antes de correr `main.py`.
+
+Windows (PowerShell):
 
 ```powershell
 $env:OPENAI_PROVIDER = "ollama"
@@ -195,6 +197,17 @@ $env:OPENAI_BASE_URL = "http://localhost:11434/v1"
 $env:OPENAI_MODEL = "phi3"
 $env:AGENT_MODEL_CONFIG_FILE = "shared/agent-models.json"
 python main.py --req "API local para biblioteca" --provider ollama --lang espanol
+```
+
+Linux (bash):
+
+```bash
+export OPENAI_PROVIDER="ollama"
+export OPENAI_API_KEY="ollama"
+export OPENAI_BASE_URL="http://localhost:11434/v1"
+export OPENAI_MODEL="phi3"
+export AGENT_MODEL_CONFIG_FILE="shared/agent-models.json"
+python3 main.py --req "API local para biblioteca" --provider ollama --lang espanol
 ```
 
 Con esta configuracion, el pipeline de `src/agents/team.py` ya no usa un unico modelo para todos los agentes: toma el modelo por rol desde `shared/agent-models.json`.
@@ -235,6 +248,64 @@ En la raíz hay un `package.json` con comandos:
     "build:frontend": "npm --prefix frontend run build"
 }
 ```
+
+## Ejemplos rapidos por sistema
+
+### Windows
+
+Arranque guiado:
+
+```powershell
+iniciar.bat
+```
+
+Bootstrap directo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File infra/scripts/bootstrap-windows.ps1
+```
+
+Modo no interactivo con requerimiento:
+
+```powershell
+$env:OPENAI_PROVIDER = "ollama"
+$env:OPENAI_API_KEY = "ollama"
+$env:OPENAI_BASE_URL = "http://localhost:11434/v1"
+$env:OPENAI_MODEL = "phi3"
+python main.py --provider ollama --lang espanol --req "API local para biblioteca comunitaria con catalogo, prestamos y devoluciones"
+```
+
+### Linux
+
+Bootstrap con ejecucion:
+
+```bash
+bash infra/scripts/bootstrap-linux.sh
+```
+
+Solo validacion/instalacion (sin correr app):
+
+```bash
+bash infra/scripts/bootstrap-linux.sh --no-run
+```
+
+Modo no interactivo con requerimiento:
+
+```bash
+export OPENAI_PROVIDER="ollama"
+export OPENAI_API_KEY="ollama"
+export OPENAI_BASE_URL="http://localhost:11434/v1"
+export OPENAI_MODEL="phi3"
+python3 main.py --provider ollama --lang espanol --req "API local para biblioteca comunitaria con catalogo, prestamos y devoluciones"
+```
+
+## Uso equivalente en ambos entornos
+
+1. Instalar dependencias de Python y frontend.
+2. Levantar backend y frontend con tareas de VS Code (`dev:all`) o en terminal separada.
+3. Levantar proveedor local de modelos (Ollama).
+4. Ejecutar pipeline con `main.py` pasando `--req`.
+5. Revisar resultados en la carpeta `output`.
 
 ## CI/CD gratuito
 
