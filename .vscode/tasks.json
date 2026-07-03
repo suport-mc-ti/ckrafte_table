@@ -57,6 +57,12 @@
 			"type": "shell",
 			"command": "git add .vscode/tasks.json; git commit -m 'chore: remove temporary git publish tasks'; git push origin main",
 			"isBackground": false
+		},
+		{
+			"label": "git:fix-bootstrap-stderr-warning",
+			"type": "shell",
+			"command": "git add infra/scripts/bootstrap-windows.ps1; git commit -m 'fix: ignore native stderr warnings during bootstrap'; git push origin main",
+			"isBackground": false
 		}
 	]
 }
