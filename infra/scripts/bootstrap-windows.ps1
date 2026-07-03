@@ -34,34 +34,51 @@ function Invoke-Cmd {
 	)
 
 	Write-Host "   - $Label..." -ForegroundColor Yellow
-	# En algunos entornos, mensajes en stderr (warnings) se elevan a excepcion.
-	# Aqui consideramos fallo solo cuando el codigo de salida sea distinto de 0.
-	$previousNativeErrorSetting = $null
-	$hadNativeErrorSetting = $false
-	if (Get-Variable -Name PSNativeCommandUseErrorActionPreference -ErrorAction SilentlyContinue) {
-		$hadNativeErrorSetting = $true
-		$previousNativeErrorSetting = $PSNativeCommandUseErrorActionPreference
-		$PSNativeCommandUseErrorActionPreference = $false
+	# En PowerShell 5.1, warnings de stderr pueden convertirse en NativeCommandError.
+	# Usamos Start-Process con redireccion para evaluar fallo solo por ExitCode.
+	$resolvedPath = $FilePath
+	$cmdCandidates = Get-Command $FilePath -All -ErrorAction SilentlyContinue
+	if ($cmdCandidates) {
+		$nativeCandidate = $cmdCandidates |
+			Where-Object { $_.Source -match "\.(exe|cmd|bat)$" } |
+			Select-Object -First 1
+		if (-not $nativeCandidate) {
+			$nativeCandidate = $cmdCandidates | Select-Object -First 1
+		}
+		if ($nativeCandidate -and $nativeCandidate.Source) {
+			$resolvedPath = $nativeCandidate.Source
+		}
 	}
 
+	$stdoutFile = Join-Path $env:TEMP ("agente_s_bootstrap_stdout_" + [guid]::NewGuid().ToString() + ".log")
+	$stderrFile = Join-Path $env:TEMP ("agente_s_bootstrap_stderr_" + [guid]::NewGuid().ToString() + ".log")
+
 	try {
+		$process = Start-Process -FilePath $resolvedPath -ArgumentList $Arguments -NoNewWindow -Wait -PassThru `
+			-RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
+
+		$stdoutText = if (Test-Path $stdoutFile) { Get-Content -Path $stdoutFile -Raw -Encoding UTF8 -ErrorAction SilentlyContinue } else { "" }
+		$stderrText = if (Test-Path $stderrFile) { Get-Content -Path $stderrFile -Raw -Encoding UTF8 -ErrorAction SilentlyContinue } else { "" }
+
 		if ($VerboseOutput) {
-			& $FilePath @Arguments
+			if ($stdoutText) { Write-Host $stdoutText.TrimEnd() }
+			if ($stderrText) { Write-Host $stderrText.TrimEnd() -ForegroundColor Yellow }
 		}
 		else {
-			"`n### $Label`n$FilePath $($Arguments -join ' ')" | Out-File -FilePath $logFile -Append -Encoding utf8
-			& $FilePath @Arguments *>> $logFile
+			"`n### $Label`n$resolvedPath $($Arguments -join ' ')" | Out-File -FilePath $logFile -Append -Encoding utf8
+			if ($stdoutText) { $stdoutText | Out-File -FilePath $logFile -Append -Encoding utf8 }
+			if ($stderrText) { $stderrText | Out-File -FilePath $logFile -Append -Encoding utf8 }
+		}
+
+		if ($process.ExitCode -ne 0) {
+			throw "Fallo en '$Label' (codigo $($process.ExitCode))."
 		}
 	}
 	finally {
-		if ($hadNativeErrorSetting) {
-			$PSNativeCommandUseErrorActionPreference = $previousNativeErrorSetting
-		}
+		Remove-Item -Path $stdoutFile -ErrorAction SilentlyContinue
+		Remove-Item -Path $stderrFile -ErrorAction SilentlyContinue
 	}
 
-	if ($LASTEXITCODE -ne 0) {
-		throw "Fallo en '$Label' (codigo $LASTEXITCODE)."
-	}
 	Write-Host "     OK" -ForegroundColor Green
 }
 
