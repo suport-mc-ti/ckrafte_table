@@ -1,0 +1,19 @@
+{
+  "name": "multi-agente-local-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Workspace centralizado para backend, frontend e infra con agentes IA locales.",
+  "scripts": {
+    "dev:backend": "python backend/app.py",
+    "dev:frontend": "npm --prefix frontend run dev -- --host 0.0.0.0",
+    "dev:infra": "echo Docker deshabilitado en este entorno",
+    "dev:all": "powershell -NoProfile -ExecutionPolicy Bypass -File infra/scripts/dev-all.ps1",
+    "build:frontend": "npm --prefix frontend run build",
+    "check:backend": "python -m py_compile backend/app.py backend/routes.py backend/shared_contracts.py",
+    "lint:frontend": "npm --prefix frontend run lint",
+    "cli:start": "python main.py",
+    "cli:usage": "python main.py --usage",
+    "cli:demo": "python main.py --req \"API local para biblioteca comunitaria con catalogo, prestamos y devoluciones\" --provider ollama --lang espanol",
+    "cli:doctor": "python -c \"from src.interfaces.commands import doctor_cmd; doctor_cmd()\""
+  }
+}

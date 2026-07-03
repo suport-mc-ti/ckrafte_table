@@ -1,0 +1,56 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "dev:backend",
+			"type": "shell",
+			"command": "python app.py",
+			"options": {
+				"cwd": "${workspaceFolder}/backend"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "dev:frontend",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' run dev -- --host 0.0.0.0",
+			"options": {
+				"cwd": "${workspaceFolder}/frontend",
+				"env": {
+					"PATH": "C:\\Program Files\\nodejs;${env:PATH}"
+				}
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "dev:all",
+			"dependsOn": [
+				"dev:backend",
+				"dev:frontend"
+			],
+			"runSequentially": false,
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "run:ollama-pipeline",
+			"type": "shell",
+			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='phi3'; $env:AGENT_MODEL_CONFIG_FILE='C:\\Users\\SuperUsuario\\Desktop\\cosas-matias\\projects\\multi-agente\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe C:/Users/SuperUsuario/Desktop/cosas-matias/projects/multi-agente/main.py --req \"API local para biblioteca comunitaria con catalogo, prestamos y devoluciones\" --provider ollama --lang espanol",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "run:ollama-pipeline-fixed",
+			"type": "shell",
+			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='phi3'; $env:AGENT_MODEL_CONFIG_FILE='C:\\Users\\SuperUsuario\\Desktop\\cosas-matias\\projects\\multi-agente\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe C:/Users/SuperUsuario/Desktop/cosas-matias/projects/multi-agente/main.py --req 'API local para biblioteca comunitaria con catalogo, prestamos y devoluciones' --provider ollama --lang espanol",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

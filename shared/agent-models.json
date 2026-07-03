@@ -1,0 +1,58 @@
+{
+  "backend": {
+    "role": "Agente A",
+    "model": "CodeLlama",
+    "runtime_model": "codellama",
+    "provider": "ollama",
+    "stack": "Flask + SQLite",
+    "goal": "Desarrollar APIs REST, reglas de negocio y persistencia local."
+  },
+  "frontend": {
+    "role": "Agente B",
+    "model": "StarCoder",
+    "runtime_model": "starcoder2",
+    "provider": "ollama",
+    "stack": "React + Vite",
+    "goal": "Construir interfaces accesibles y conectadas a la API."
+  },
+  "infra": {
+    "role": "Agente C",
+    "model": "GPT4All",
+    "runtime_model": "phi3",
+    "provider": "ollama",
+    "stack": "Docker Compose + GitHub Actions",
+    "goal": "Automatizar contenedores, despliegues locales y tareas repetitivas."
+  },
+  "planner": {
+    "role": "Project Manager",
+    "model": "GPT4All",
+    "runtime_model": "phi3",
+    "provider": "ollama",
+    "stack": "Analisis y coordinacion",
+    "goal": "Planificar la arquitectura y alinear el trabajo del equipo."
+  },
+  "qa": {
+    "role": "QA Engineer",
+    "model": "CodeLlama",
+    "runtime_model": "codellama",
+    "provider": "ollama",
+    "stack": "Pytest + revision tecnica",
+    "goal": "Revisar bugs, riesgos y calidad general del proyecto."
+  },
+  "security": {
+    "role": "Security Auditor",
+    "model": "CodeLlama",
+    "runtime_model": "codellama",
+    "provider": "ollama",
+    "stack": "OWASP + hardening",
+    "goal": "Identificar vulnerabilidades y proponer mitigaciones concretas."
+  },
+  "docs": {
+    "role": "Tech Writer",
+    "model": "GPT4All",
+    "runtime_model": "phi3",
+    "provider": "ollama",
+    "stack": "Markdown + documentacion tecnica",
+    "goal": "Explicar instalacion, uso y colaboracion para personas principiantes."
+  }
+}

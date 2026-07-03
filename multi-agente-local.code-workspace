@@ -1,0 +1,48 @@
+{
+  "folders": [
+    {
+      "name": "raiz",
+      "path": "."
+    },
+    {
+      "name": "backend",
+      "path": "backend"
+    },
+    {
+      "name": "frontend",
+      "path": "frontend"
+    },
+    {
+      "name": "infra",
+      "path": "infra"
+    },
+    {
+      "name": "shared",
+      "path": "shared"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/.pytest_cache": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/node_modules": true
+    },
+    "python.defaultInterpreterPath": "${workspaceFolder:backend}\\.venv\\Scripts\\python.exe",
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.git": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-azuretools.vscode-docker",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode"
+    ]
+  }
+}

@@ -1,0 +1,99 @@
+:root {
+  font-family: 'Space Grotesk', sans-serif;
+  color: #f5f4ef;
+  background:
+    radial-gradient(circle at top left, rgba(255, 183, 77, 0.35), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(58, 134, 255, 0.3), transparent 28%),
+    linear-gradient(135deg, #09111f, #13233d 55%, #1f344a);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.page-shell {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 4rem 0 5rem;
+}
+
+.hero {
+  padding: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 28px;
+  background: rgba(8, 14, 26, 0.66);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #ffd166;
+  font-size: 0.8rem;
+}
+
+.hero h1 {
+  margin: 0.5rem 0 1rem;
+  font-size: clamp(2.5rem, 4vw, 4.4rem);
+  line-height: 1;
+}
+
+.lede {
+  max-width: 60ch;
+  color: rgba(245, 244, 239, 0.86);
+  font-size: 1.05rem;
+}
+
+.grid {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  padding: 1.4rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  min-height: 220px;
+}
+
+.badge {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 209, 102, 0.18);
+  color: #ffe29a;
+}
+
+.card h2 {
+  margin: 0 0 0.8rem;
+  text-transform: capitalize;
+}
+
+@media (max-width: 640px) {
+  .page-shell {
+    width: min(100% - 1rem, 1100px);
+    padding-top: 1rem;
+  }
+
+  .hero {
+    padding: 1.4rem;
+  }
+
+  .hero h1 {
+    font-size: 2.2rem;
+  }
+}

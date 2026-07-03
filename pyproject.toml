@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agente-s"
+version = "0.1.0"
+description = "Equipo de desarrollo multi-agente IA para generar entregables tecnicos"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "openai-agents>=0.17.0",
+  "python-dotenv>=1.0.0",
+  "pydantic>=2.6.0",
+  "rich>=13.7.0",
+]
+
+[project.scripts]
+agente-s = "src.interfaces.cli:main"
+agente-s-doctor = "src.interfaces.commands:doctor_cmd"
+agente-s-usage = "src.interfaces.commands:usage_cmd"
+agente-s-start = "src.interfaces.commands:start_cmd"
+agente-s-demo = "src.interfaces.commands:demo_cmd"
+agente-s-launcher = "src.interfaces.launcher:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["src", "src.*"]

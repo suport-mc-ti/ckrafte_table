@@ -1,0 +1,30 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "explorer.excludeGitIgnore": true,
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/.mypy_cache": true,
+        "**/.ruff_cache": true,
+        "**/.venv": true,
+        "**/.venv-1": true,
+        "**/*.egg-info": true,
+        "frontend/node_modules": true,
+        "frontend/dist": true,
+        "build": true
+    },
+    "search.exclude": {
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/.mypy_cache": true,
+        "**/.ruff_cache": true,
+        "**/.venv": true,
+        "**/.venv-1": true,
+        "**/*.egg-info": true,
+        "frontend/node_modules": true,
+        "frontend/dist": true,
+        "build": true,
+        "output": true,
+        "sessions": true
+    }
+}
