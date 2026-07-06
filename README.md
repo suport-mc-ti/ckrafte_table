@@ -1,5 +1,8 @@
 # ckrafte_table
 
+[![CI](https://github.com/suport-mc-ti/ckrafte_table/actions/workflows/ci.yml/badge.svg)](https://github.com/suport-mc-ti/ckrafte_table/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Proyecto ckrafte_table para generar soluciones de software separadas por roles: backend, frontend e infraestructura.
 
 ## Que hace
@@ -94,8 +97,11 @@ Tareas incluidas:
 - `dev:backend`
 - `dev:frontend`
 - `dev:all`
+- `bootstrap:windows`
 - `run:ollama-pipeline`
-- `run:ollama-pipeline-fixed`
+- `run:service-mode:library`
+- `run:service-mode:from-env`
+- `run:service-mode:env-requirement`
 
 ## Componentes incluidos
 
@@ -206,7 +212,7 @@ Windows (PowerShell):
 $env:OPENAI_PROVIDER = "ollama"
 $env:OPENAI_API_KEY = "ollama"
 $env:OPENAI_BASE_URL = "http://localhost:11434/v1"
-$env:OPENAI_MODEL = "phi3"
+$env:OPENAI_MODEL = "llama3.2"
 $env:AGENT_MODEL_CONFIG_FILE = "shared/agent-models.json"
 python main.py --req "API local para biblioteca" --provider ollama --lang espanol
 ```
@@ -217,7 +223,7 @@ Linux (bash):
 export OPENAI_PROVIDER="ollama"
 export OPENAI_API_KEY="ollama"
 export OPENAI_BASE_URL="http://localhost:11434/v1"
-export OPENAI_MODEL="phi3"
+export OPENAI_MODEL="llama3.2"
 export AGENT_MODEL_CONFIG_FILE="shared/agent-models.json"
 python3 main.py --req "API local para biblioteca" --provider ollama --lang espanol
 ```
@@ -295,7 +301,7 @@ Modo no interactivo con requerimiento:
 $env:OPENAI_PROVIDER = "ollama"
 $env:OPENAI_API_KEY = "ollama"
 $env:OPENAI_BASE_URL = "http://localhost:11434/v1"
-$env:OPENAI_MODEL = "phi3"
+$env:OPENAI_MODEL = "llama3.2"
 python main.py --provider ollama --lang espanol --req "API local para biblioteca comunitaria con catalogo, prestamos y devoluciones"
 ```
 
@@ -319,7 +325,7 @@ Modo no interactivo con requerimiento:
 export OPENAI_PROVIDER="ollama"
 export OPENAI_API_KEY="ollama"
 export OPENAI_BASE_URL="http://localhost:11434/v1"
-export OPENAI_MODEL="phi3"
+export OPENAI_MODEL="llama3.2"
 python3 main.py --provider ollama --lang espanol --req "API local para biblioteca comunitaria con catalogo, prestamos y devoluciones"
 ```
 
@@ -375,6 +381,22 @@ El workflow `.github/workflows/ci.yml` ejecuta:
 - build del frontend.
 
 Es una base gratuita suficiente para proyectos educativos o comunitarios en GitHub.
+
+## Seguridad y privacidad para repositorio publico
+
+Antes de abrir PR o publicar fork:
+
+1. No subir secretos, tokens ni cookies.
+2. No subir rutas personales del sistema local.
+3. No subir salidas de ejecucion con metadatos locales (`project_runs/`, `output/`, `sessions/`, `logs/`).
+4. Si detectas filtracion, rota credenciales y reporta por `SECURITY.md`.
+
+Referencias:
+
+- `LICENSE`
+- `CONTRIBUTING.md`
+- `CODE_OF_CONDUCT.md`
+- `SECURITY.md`
 
 ## Impacto social
 

@@ -47,7 +47,7 @@
 		{
 			"label": "run:ollama-pipeline",
 			"type": "shell",
-			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='llama3.2'; $env:AGENT_MODEL_CONFIG_FILE='${workspaceFolder}\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --req \"API local para biblioteca comunitaria con catalogo, prestamos y devoluciones\" --provider ollama --lang espanol",
+			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='llama3.2'; $env:AGENT_MODEL_CONFIG_FILE='${workspaceFolder}\\shared\\agent-models.json'; python ${workspaceFolder}/main.py --req \"API local para biblioteca comunitaria con catalogo, prestamos y devoluciones\" --provider ollama --lang espanol",
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
@@ -55,7 +55,7 @@
 		{
 			"label": "run:service-mode:library",
 			"type": "shell",
-			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='llama3.2'; $env:AGENT_MODEL_CONFIG_FILE='${workspaceFolder}\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --service-mode --req 'API local para biblioteca comunitaria con catalogo, prestamos y devoluciones' --provider ollama --lang espanol",
+			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='llama3.2'; $env:AGENT_MODEL_CONFIG_FILE='${workspaceFolder}\\shared\\agent-models.json'; python ${workspaceFolder}/main.py --service-mode --req 'API local para biblioteca comunitaria con catalogo, prestamos y devoluciones' --provider ollama --lang espanol",
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
@@ -63,21 +63,21 @@
 		{
 			"label": "run:service-mode:from-env",
 			"type": "shell",
-			"command": "$env:CKRAFTE_SERVICE_MODE='1'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --provider ollama --lang espanol",
+			"command": "$env:CKRAFTE_SERVICE_MODE='1'; python ${workspaceFolder}/main.py --provider ollama --lang espanol",
 			"isBackground": false
 		},
 		{
 			"label": "run:service-mode:env-requirement",
 			"type": "shell",
-			"command": "$env:CKRAFTE_SERVICE_MODE='1'; if (-not $env:DEFAULT_REQUIREMENT) { $env:DEFAULT_REQUIREMENT='API local para biblioteca comunitaria con catalogo, prestamos y devoluciones' }; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --provider ollama --lang espanol",
+			"command": "$env:CKRAFTE_SERVICE_MODE='1'; if (-not $env:DEFAULT_REQUIREMENT) { $env:DEFAULT_REQUIREMENT='API local para biblioteca comunitaria con catalogo, prestamos y devoluciones' }; python ${workspaceFolder}/main.py --provider ollama --lang espanol",
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
 		},
 		{
-			"label": "git:finalize-model-fix",
+			"label": "maintenance:publish-open-source-update",
 			"type": "shell",
-			"command": "powershell -NoLogo -NoProfile -Command \"git add .vscode/tasks.json; git commit -m 'fix: cleanup tasks and default to llama3.2'; git push origin main\"",
+			"command": "powershell -NoLogo -NoProfile -Command \"git add -A; git commit -m 'docs: open-source community and security hardening'; git push origin main\"",
 			"isBackground": false
 		}
 	]

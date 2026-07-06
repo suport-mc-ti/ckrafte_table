@@ -1,4 +1,6 @@
 .env
+.env.*
+.envrc
 .venv/
 .venv-1/
 __pycache__/
@@ -24,3 +26,11 @@ build/
 /frontend/output/
 /frontend/sessions/
 .DS_Store
+
+# Security: local credentials and key material
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
