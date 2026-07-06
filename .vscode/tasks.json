@@ -65,6 +65,26 @@
 			"type": "shell",
 			"command": "$env:CKRAFTE_SERVICE_MODE='1'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --provider ollama --lang espanol",
 			"isBackground": false
+		},
+		{
+			"label": "run:service-mode:env-requirement",
+			"type": "shell",
+			"command": "$env:CKRAFTE_SERVICE_MODE='1'; if (-not $env:DEFAULT_REQUIREMENT) { $env:DEFAULT_REQUIREMENT='API local para biblioteca comunitaria con catalogo, prestamos y devoluciones' }; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --provider ollama --lang espanol",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "git:push-service-mode-env-task",
+			"type": "shell",
+			"command": "git add .vscode/tasks.json; git commit -m \"chore: add service-mode task with env requirement fallback\"; git push origin main",
+			"isBackground": false
+		},
+		{
+			"label": "git:push-service-mode-env-task-ps",
+			"type": "shell",
+			"command": "powershell -NoLogo -NoProfile -Command \"git add .vscode/tasks.json; git commit -m 'chore: add service-mode task with env requirement fallback'; git push origin main\"",
+			"isBackground": false
 		}
 	]
 }
