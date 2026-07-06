@@ -47,7 +47,7 @@
 		{
 			"label": "run:ollama-pipeline",
 			"type": "shell",
-			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='phi3'; $env:AGENT_MODEL_CONFIG_FILE='${workspaceFolder}\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --req \"API local para biblioteca comunitaria con catalogo, prestamos y devoluciones\" --provider ollama --lang espanol",
+			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='llama3.2'; $env:AGENT_MODEL_CONFIG_FILE='${workspaceFolder}\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --req \"API local para biblioteca comunitaria con catalogo, prestamos y devoluciones\" --provider ollama --lang espanol",
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
@@ -55,7 +55,7 @@
 		{
 			"label": "run:service-mode:library",
 			"type": "shell",
-			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='phi3'; $env:AGENT_MODEL_CONFIG_FILE='${workspaceFolder}\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --service-mode --req 'API local para biblioteca comunitaria con catalogo, prestamos y devoluciones' --provider ollama --lang espanol",
+			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='llama3.2'; $env:AGENT_MODEL_CONFIG_FILE='${workspaceFolder}\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --service-mode --req 'API local para biblioteca comunitaria con catalogo, prestamos y devoluciones' --provider ollama --lang espanol",
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
@@ -75,15 +75,9 @@
 			"group": "build"
 		},
 		{
-			"label": "git:push-service-mode-env-task",
+			"label": "git:finalize-model-fix",
 			"type": "shell",
-			"command": "git add .vscode/tasks.json; git commit -m \"chore: add service-mode task with env requirement fallback\"; git push origin main",
-			"isBackground": false
-		},
-		{
-			"label": "git:push-service-mode-env-task-ps",
-			"type": "shell",
-			"command": "powershell -NoLogo -NoProfile -Command \"git add .vscode/tasks.json; git commit -m 'chore: add service-mode task with env requirement fallback'; git push origin main\"",
+			"command": "powershell -NoLogo -NoProfile -Command \"git add .vscode/tasks.json; git commit -m 'fix: cleanup tasks and default to llama3.2'; git push origin main\"",
 			"isBackground": false
 		}
 	]
