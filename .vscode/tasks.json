@@ -79,6 +79,12 @@
 			"type": "shell",
 			"command": "powershell -NoLogo -NoProfile -Command \"git add -A; git commit -m 'docs: open-source community and security hardening'; git push origin main\"",
 			"isBackground": false
+		},
+		{
+			"label": "git:publish-env-example-ollama",
+			"type": "shell",
+			"command": "powershell -NoLogo -NoProfile -Command \"git add .env.example; git commit -m 'docs: switch env example to local ollama defaults'; git push origin main\"",
+			"isBackground": false
 		}
 	]
 }
