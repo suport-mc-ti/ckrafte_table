@@ -93,40 +93,74 @@ async def _run_agent(agent, input_text: str, step_label: str,
     save_session(session)
     _print_pipeline_progress(session, heading="Progreso")
 
+    # Configurable behaviour via env vars:
+    # CKRAFTE_STEP_TIMEOUT: seconds to wait before considering the step timed out (default 600s)
+    # CKRAFTE_STEP_RETRIES: number of attempts including the first (default 2)
+    # CKRAFTE_RETRY_BACKOFF: base seconds for exponential backoff (default 5s)
+    step_timeout = int(os.getenv("CKRAFTE_STEP_TIMEOUT", "600"))
+    max_retries = int(os.getenv("CKRAFTE_STEP_RETRIES", "2"))
+    backoff_base = int(os.getenv("CKRAFTE_RETRY_BACKOFF", "5"))
+
     stop_event = asyncio.Event()
     heartbeat_task = asyncio.create_task(_heartbeat(step_label, stop_event))
+    attempt = 0
+    last_exc: Exception | None = None
     try:
-        result = await Runner.run(agent, input=input_text)
-        if not _suppress_progress():
-            console.print(f"[green]   Completado[/green]")
-        session["steps"][step_key] = "completed"
-        session["error"] = None
-        save_session(session)
-        _print_pipeline_progress(session, heading="Progreso")
-        return result
-    except RateLimitError as exc:
-        msg = str(exc)
-        wait_match = re.search(r"try again in ([^.\"]+)", msg, re.IGNORECASE)
-        wait_str = wait_match.group(1).strip() if wait_match else "un momento"
-        console.print(
-            f"[red]   Limite de tokens alcanzado. "
-            f"Intenta de nuevo en [bold]{wait_str}[/bold][/red]"
-        )
+        while attempt < max_retries:
+            attempt += 1
+            try:
+                if not _suppress_progress():
+                    console.print(f"[dim]   Intento {attempt}/{max_retries} para {step_label} (timeout {step_timeout}s)[/dim]")
+                # Run the agent with a timeout
+                result = await asyncio.wait_for(
+                    Runner.run(agent, input=input_text), timeout=step_timeout
+                )
+                if not _suppress_progress():
+                    console.print(f"[green]   Completado[/green]")
+                session["steps"][step_key] = "completed"
+                session["error"] = None
+                save_session(session)
+                _print_pipeline_progress(session, heading="Progreso")
+                return result
+            except RateLimitError as exc:
+                # Rate limits are usually terminal for the current run; save and re-raise
+                msg = str(exc)
+                wait_match = re.search(r"try again in ([^.\"]+)", msg, re.IGNORECASE)
+                wait_str = wait_match.group(1).strip() if wait_match else "un momento"
+                console.print(
+                    f"[red]   Limite de tokens alcanzado. "
+                    f"Intenta de nuevo en [bold]{wait_str}[/bold][/red]"
+                )
+                session["steps"][step_key] = "failed"
+                session["error"] = (
+                    f"Rate limit en '{step_label}'. Espera {wait_str} y usa "
+                    f"'Continuar sesion' para reanudar."
+                )
+                save_session(session)
+                _print_pipeline_progress(session, heading="Progreso")
+                raise
+            except asyncio.TimeoutError as exc:
+                last_exc = exc
+                console.print(f"[red]   Timeout (>{step_timeout}s) en intento {attempt} para {step_label}[/red]")
+            except Exception as exc:
+                last_exc = exc
+                console.print(f"[red]   Fallo en intento {attempt}: {exc}[/red]")
+
+            # If we get here, attempt failed but we may retry
+            if attempt < max_retries:
+                backoff = backoff_base * (2 ** (attempt - 1))
+                console.print(f"[yellow]   Reintentando en {backoff}s...[/yellow]")
+                session["steps"][step_key] = "running"
+                session["error"] = f"Intento {attempt} fallo: {last_exc}. Reintentando en {backoff}s."
+                save_session(session)
+                await asyncio.sleep(backoff)
+
+        # All attempts exhausted
         session["steps"][step_key] = "failed"
-        session["error"] = (
-            f"Rate limit en '{step_label}'. Espera {wait_str} y usa "
-            f"'Continuar sesion' para reanudar."
-        )
+        session["error"] = f"Fallo definitivo en '{step_label}': {last_exc}"
         save_session(session)
         _print_pipeline_progress(session, heading="Progreso")
-        raise
-    except Exception as exc:
-        console.print(f"[red]   Fallo: {exc}[/red]")
-        session["steps"][step_key] = "failed"
-        session["error"] = f"Error en '{step_label}': {exc}"
-        save_session(session)
-        _print_pipeline_progress(session, heading="Progreso")
-        raise
+        raise last_exc if last_exc else RuntimeError(f"Fallo desconocido en {step_label}")
     finally:
         stop_event.set()
         heartbeat_task.cancel()
