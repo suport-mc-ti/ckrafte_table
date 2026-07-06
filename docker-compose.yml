@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: infra/docker/backend.Dockerfile
-    container_name: multi-agente-backend
+    container_name: ckrafte_table-backend
     environment:
       FLASK_APP: app.py
       FLASK_ENV: development
@@ -18,7 +18,7 @@ services:
     build:
       context: .
       dockerfile: infra/docker/frontend.Dockerfile
-    container_name: multi-agente-frontend
+    container_name: ckrafte_table-frontend
     depends_on:
       - backend
     environment:

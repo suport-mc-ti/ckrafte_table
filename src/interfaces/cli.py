@@ -1,5 +1,5 @@
 """
-Interfaz de linea de comandos (CLI) para el equipo multi-agente.
+Interfaz de linea de comandos (CLI) para ckrafte_table.
 
 Para agregar otra interfaz (web, API, etc.) crea un nuevo archivo en este
 mismo directorio, por ejemplo:
@@ -35,7 +35,7 @@ load_dotenv()
 console = Console()
 
 BANNER = """
-AGENTE-S  |  terminal mode
+CKRAFTE_TABLE  |  terminal mode
 multi-agent software builder
 """
 
@@ -385,7 +385,7 @@ def open_visual_flowchart_tab(session: dict) -> None:
 <head>
     <meta charset=\"utf-8\" />
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-    <title>AGENTE-S | Diagrama visual</title>
+    <title>CKRAFTE_TABLE | Diagrama visual</title>
     <style>
         :root {{
             --bg: #040807;
@@ -524,12 +524,12 @@ def open_visual_flowchart_tab(session: dict) -> None:
     <div class=\"matrix-rain\"></div>
     <div class=\"scanlines\"></div>
     <div class=\"wrap\">
-        <pre class=\"ascii\">  ___   _____ ______ _   _ _____ _____      ____
- / _ \ / ____|  ____| \ | |_   _/ ____|    / __ \
-| | | | (___ | |__  |  \| | | || |  __    | |  | |
-| | | |\___ \|  __| | . ` | | || | |_ |   | |  | |
-| |_| |____) | |____| |\  |_| || |__| |   | |__| |
- \___/|_____/|______|_| \_|_____\_____|    \____/
+         <pre class=\"ascii\">  ___   _____ ______ _   _ _____ _____      ____
+     / _ \\ / ____|  ____| \\ | |_   _/ ____|    / __ \\
+    | | | | (___ | |__  |  \\| | | || |  __    | |  | |
+    | | | |\\___ \\|  __| | . ` | | || | |_ |   | |  | |
+    | |_| |____) | |____| |\\  |_| || |__| |   | |__| |
+     \\___/|_____/|______|_| \\_|_____\\_____|    \\____/
         </pre>
         <h1>Diagrama visual del proyecto</h1>
         <div class=\"meta\">Sesion {escape(session['id'])} | {escape(session.get('provider', ''))} | {escape(session.get('model', ''))}</div>
@@ -647,7 +647,73 @@ def _run_pipeline_safe(session: dict) -> None:
             console.print(f"[yellow]Archivo de sesion:[/yellow] [cyan]{session['session_file']}[/cyan]")
 
 
-def run_new(requirement: str, output_language: str, user_name: str = "Usuario") -> None:
+def _create_final_execution_report(session: dict) -> tuple[str, str]:
+    """Genera un informe final estructurado y lo guarda en output/."""
+    output_dir = Path(session["output_dir"])
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    done = sum(1 for s in session["steps"].values() if s == "completed")
+    total = len(session["steps"])
+    failed_steps = [k for k, v in session["steps"].items() if v == "failed"]
+
+    generated_files = []
+    for filename, desc in OUTPUT_FILES:
+        path = output_dir / filename
+        if path.exists():
+            generated_files.append(f"- {filename}: {desc}")
+
+    modules = [
+        "- src/interfaces/cli.py (orquestacion de ejecucion y UX de terminal)",
+        "- src/crews/dev_crew.py (pipeline multi-agente y persistencia de entregables)",
+        "- src/sessions/manager.py (gestion del estado de sesion)",
+    ]
+
+    report_lines = [
+        "# Informe final de ejecucion",
+        "",
+        "## 1) Cambios realizados",
+        f"- Ejecucion completada: {done}/{total} pasos.",
+    ]
+
+    if failed_steps:
+        report_lines.append(f"- Pasos con fallo: {', '.join(failed_steps)}")
+    else:
+        report_lines.append("- No se registraron fallos en los pasos del pipeline.")
+
+    if generated_files:
+        report_lines.append("- Entregables generados:")
+        report_lines.extend(generated_files)
+    else:
+        report_lines.append("- No se detectaron entregables generados.")
+
+    report_lines.extend([
+        "",
+        "## 2) Como se implemento",
+        "- Se ejecuto el pipeline multi-agente de forma secuencial con Backend+Frontend en paralelo.",
+        "- El estado se guardo en session.json para permitir reanudacion en caso de corte o error.",
+        "- Cada agente persistio su salida en archivos markdown dentro de la carpeta output de la sesion.",
+        "",
+        "## 3) Archivos y modulos afectados",
+        *modules,
+        "",
+        "## 4) Justificacion tecnica",
+        "- El modo de ejecucion directa reduce friccion operativa al eliminar prompts y menus innecesarios.",
+        "- La persistencia por pasos mejora trazabilidad y recuperacion ante fallos de red/modelo.",
+        "- La salida consolidada en markdown simplifica auditoria tecnica y handoff del trabajo.",
+    ])
+
+    report_content = "\n".join(report_lines)
+    report_path = output_dir / "99_final_execution_report.md"
+    report_path.write_text(report_content, encoding="utf-8")
+    return str(report_path), report_content
+
+
+def run_new(
+    requirement: str,
+    output_language: str,
+    user_name: str = "Usuario",
+    service_mode: bool = False,
+) -> None:
     from src.sessions.manager import create_session, save_session
 
     os.environ["OUTPUT_LANGUAGE"] = output_language
@@ -655,9 +721,25 @@ def run_new(requirement: str, output_language: str, user_name: str = "Usuario") 
     session = create_session(requirement, output_language)
     save_session(session)
     provider = os.getenv("OPENAI_PROVIDER", "groq")
-    display_team_setup(user_name, requirement)
-    display_start(requirement, output_language, provider)
+    if service_mode:
+        os.environ["CKRAFTE_SUPPRESS_PROGRESS"] = "1"
+    else:
+        os.environ["CKRAFTE_SUPPRESS_PROGRESS"] = "0"
+        display_team_setup(user_name, requirement)
+        display_start(requirement, output_language, provider)
+
     _run_pipeline_safe(session)
+
+    if service_mode:
+        report_path, report_content = _create_final_execution_report(session)
+        console.print()
+        console.print(Panel(
+            report_content,
+            title="Informe final",
+            border_style="green",
+            width=100,
+        ))
+        console.print(f"[green]Informe guardado en:[/green] [cyan]{report_path}[/cyan]")
 
 
 def run_guided_new_project(output_language: str) -> None:
@@ -883,7 +965,7 @@ def show_main_menu(output_language: str) -> None:
 # ── Entry point ──────────────────────────────────────────────────────────────
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Equipo de desarrollo multi-agente IA")
+    parser = argparse.ArgumentParser(description="Equipo de desarrollo ckrafte_table IA")
     parser.add_argument(
         "--req", "--requirement", type=str, default=None, dest="req",
         help="Requerimiento del proyecto (omite para menu interactivo)",
@@ -916,6 +998,10 @@ def main() -> None:
         "--guided", action="store_true",
         help="Usar nuevo proyecto guiado (nombre + requerimiento)",
     )
+    parser.add_argument(
+        "--service-mode", action="store_true",
+        help="Ejecucion directa sin menu ni pasos intermedios, con informe final",
+    )
     args = parser.parse_args()
 
     console.print(Text(BANNER, style="bold cyan"))
@@ -928,6 +1014,18 @@ def main() -> None:
     check_env()
 
     output_language = args.lang or os.getenv("OUTPUT_LANGUAGE", "espanol")
+
+    service_mode = args.service_mode or os.getenv("CKRAFTE_SERVICE_MODE", "0") == "1"
+
+    if service_mode:
+        requirement = (args.req or os.getenv("DEFAULT_REQUIREMENT") or DEFAULT_LIBRARY_REQUIREMENT).strip()
+        run_new(
+            requirement,
+            output_language,
+            user_name=args.user or os.getenv("PROJECT_USER_NAME", "Usuario"),
+            service_mode=True,
+        )
+        return
 
     if args.req:
         # Modo directo: sin menu

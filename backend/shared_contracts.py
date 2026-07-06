@@ -9,7 +9,7 @@ with _MODELS_FILE.open("r", encoding="utf-8") as handler:
     AGENT_MODELS = json.load(handler)
 
 API_INFO = {
-    "name": "Multi-Agente Local API",
+    "name": "ckrafte_table API",
     "version": "0.1.0",
     "docs": "/api/agents",
 }

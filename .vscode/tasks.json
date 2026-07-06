@@ -37,31 +37,33 @@
 			}
 		},
 		{
+			"label": "bootstrap:windows",
+			"type": "shell",
+			"command": "powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ${workspaceFolder}/infra/scripts/bootstrap-windows.ps1 -NoRun",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
 			"label": "run:ollama-pipeline",
 			"type": "shell",
-			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='phi3'; $env:AGENT_MODEL_CONFIG_FILE='C:\\Users\\SuperUsuario\\Desktop\\cosas-matias\\projects\\multi-agente\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe C:/Users/SuperUsuario/Desktop/cosas-matias/projects/multi-agente/main.py --req \"API local para biblioteca comunitaria con catalogo, prestamos y devoluciones\" --provider ollama --lang espanol",
+			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='phi3'; $env:AGENT_MODEL_CONFIG_FILE='${workspaceFolder}\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --req \"API local para biblioteca comunitaria con catalogo, prestamos y devoluciones\" --provider ollama --lang espanol",
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
 		},
 		{
-			"label": "run:ollama-pipeline-fixed",
+			"label": "run:service-mode:library",
 			"type": "shell",
-			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='phi3'; $env:AGENT_MODEL_CONFIG_FILE='C:\\Users\\SuperUsuario\\Desktop\\cosas-matias\\projects\\multi-agente\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe C:/Users/SuperUsuario/Desktop/cosas-matias/projects/multi-agente/main.py --req 'API local para biblioteca comunitaria con catalogo, prestamos y devoluciones' --provider ollama --lang espanol",
+			"command": "$env:OPENAI_PROVIDER='ollama'; $env:OPENAI_API_KEY='ollama'; $env:OPENAI_BASE_URL='http://localhost:11434/v1'; $env:OPENAI_MODEL='phi3'; $env:AGENT_MODEL_CONFIG_FILE='${workspaceFolder}\\shared\\agent-models.json'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --service-mode --req 'API local para biblioteca comunitaria con catalogo, prestamos y devoluciones' --provider ollama --lang espanol",
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
 		},
 		{
-			"label": "git:cleanup-temporary-task-commit",
+			"label": "run:service-mode:from-env",
 			"type": "shell",
-			"command": "git add .vscode/tasks.json; git commit -m 'chore: remove temporary git publish tasks'; git push origin main",
-			"isBackground": false
-		},
-		{
-			"label": "git:fix-bootstrap-stderr-warning",
-			"type": "shell",
-			"command": "git add infra/scripts/bootstrap-windows.ps1; git commit -m 'fix: ignore native stderr warnings during bootstrap'; git push origin main",
+			"command": "$env:CKRAFTE_SERVICE_MODE='1'; C:/Users/SuperUsuario/AppData/Local/Python/pythoncore-3.14-64/python.exe ${workspaceFolder}/main.py --provider ollama --lang espanol",
 			"isBackground": false
 		}
 	]

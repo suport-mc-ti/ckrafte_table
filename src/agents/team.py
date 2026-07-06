@@ -1,5 +1,5 @@
 """
-Agentes del equipo de desarrollo multi-agente.
+Agentes del equipo de desarrollo de ckrafte_table.
 El pipeline pasa el contexto completo en el input y guarda los archivos directamente.
 """
 

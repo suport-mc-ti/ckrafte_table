@@ -1,6 +1,6 @@
 # ckrafte_table
 
-Proyecto multi-agente local para generar soluciones de software separadas por roles: backend, frontend e infraestructura.
+Proyecto ckrafte_table para generar soluciones de software separadas por roles: backend, frontend e infraestructura.
 
 ## Que hace
 
@@ -72,7 +72,7 @@ ollama pull starcoder2
 1. Backend: estructura de APIs, rutas y contratos basicos.
 2. Frontend: base React/Vite para iterar interfaz.
 3. Infra: soporte Docker y scripts de arranque.
-4. Orquestacion: pipeline multi-agente configurable por proveedor/modelo.
+4. Orquestacion: pipeline de ckrafte_table configurable por proveedor/modelo.
 
 ## Estructura
 
@@ -387,7 +387,7 @@ Este workspace busca democratizar el acceso a la programación y la IA local:
 
 ## Proyecto Python original
 
-El sistema original de este repositorio sigue disponible para generar entregables multi-agente desde `main.py` y `src/`.
+El sistema principal de este repositorio sigue disponible para generar entregables de ckrafte_table desde `main.py` y `src/`.
 
 Ejecucion directa:
 

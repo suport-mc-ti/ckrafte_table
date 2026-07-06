@@ -1,4 +1,4 @@
-"""Launcher unico multiplataforma para AGENTE-S."""
+"""Launcher unico multiplataforma para ckrafte_table."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ def _build_command(no_run: bool, verbose: bool) -> list[str]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Launcher unico de AGENTE-S (deteccion automatica de sistema operativo)"
+        description="Launcher unico de ckrafte_table (deteccion automatica de sistema operativo)"
     )
     parser.add_argument(
         "--no-run",
@@ -58,7 +58,7 @@ def main() -> None:
     args = parser.parse_args()
 
     print("+--------------------------------------------------------------+")
-    print("| AGENTE-S / LAUNCHER UNICO                                   |")
+    print("| CKRAFTE_TABLE / LAUNCHER UNICO                              |")
     print("| Deteccion automatica de sistema y arranque guiado           |")
     print("+--------------------------------------------------------------+")
 

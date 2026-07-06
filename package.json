@@ -1,8 +1,8 @@
 {
-  "name": "multi-agente-local-workspace",
+  "name": "ckrafte_table",
   "private": true,
   "version": "0.1.0",
-  "description": "Workspace centralizado para backend, frontend e infra con agentes IA locales.",
+  "description": "Workspace centralizado de ckrafte_table para backend, frontend e infra.",
   "scripts": {
     "dev:backend": "python backend/app.py",
     "dev:frontend": "npm --prefix frontend run dev -- --host 0.0.0.0",

@@ -6,7 +6,7 @@ if [[ "${1:-}" == "--no-run" ]]; then
 	NO_RUN="1"
 fi
 
-echo "[AGENTE-S] Bootstrap Linux"
+echo "[CKRAFTE_TABLE] Bootstrap Linux"
 
 cd "$(dirname "$0")/../.."
 
@@ -64,11 +64,11 @@ echo "   OK: entorno configurado para esta terminal"
 
 echo
 echo "Listo. Siguientes pasos:"
-echo "- Ejecuta: agente-s-start"
+echo "- Ejecuta: ckrafte_table-start"
 echo "- O ejecuta: python3 main.py --provider ollama --lang espanol"
 
 if [[ "$NO_RUN" == "0" ]]; then
 	echo
-	echo "[AGENTE-S] Arrancando herramienta automaticamente..."
+	echo "[CKRAFTE_TABLE] Arrancando herramienta automaticamente..."
 	python3 main.py --provider ollama --lang espanol
 fi

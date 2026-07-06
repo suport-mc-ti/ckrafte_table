@@ -98,7 +98,7 @@ def doctor_cmd() -> None:
 
     checks.append(("Ollama activo en localhost:11434", ollama_ok, ollama_note))
 
-    print("Diagnostico agente-s")
+    print("Diagnostico ckrafte_table")
     print("Raiz:", PROJECT_ROOT)
 
     all_ok = True

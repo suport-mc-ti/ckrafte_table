@@ -3,9 +3,9 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agente-s"
+name = "ckrafte_table"
 version = "0.1.0"
-description = "Equipo de desarrollo multi-agente IA para generar entregables tecnicos"
+description = "Proyecto ckrafte_table para generar entregables tecnicos con agentes IA"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -16,12 +16,12 @@ dependencies = [
 ]
 
 [project.scripts]
-agente-s = "src.interfaces.cli:main"
-agente-s-doctor = "src.interfaces.commands:doctor_cmd"
-agente-s-usage = "src.interfaces.commands:usage_cmd"
-agente-s-start = "src.interfaces.commands:start_cmd"
-agente-s-demo = "src.interfaces.commands:demo_cmd"
-agente-s-launcher = "src.interfaces.launcher:main"
+ckrafte_table = "src.interfaces.cli:main"
+ckrafte_table-doctor = "src.interfaces.commands:doctor_cmd"
+ckrafte_table-usage = "src.interfaces.commands:usage_cmd"
+ckrafte_table-start = "src.interfaces.commands:start_cmd"
+ckrafte_table-demo = "src.interfaces.commands:demo_cmd"
+ckrafte_table-launcher = "src.interfaces.launcher:main"
 
 [tool.setuptools]
 include-package-data = true

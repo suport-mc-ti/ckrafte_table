@@ -7,7 +7,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 try {
-	$Host.UI.RawUI.WindowTitle = "AGENTE-S | Bootstrap Windows"
+	$Host.UI.RawUI.WindowTitle = "CKRAFTE_TABLE | Bootstrap Windows"
 }
 catch {
 	# Ignore if host does not support window title
@@ -15,7 +15,7 @@ catch {
 
 Clear-Host
 Write-Host "+------------------------------------------------------------------+" -ForegroundColor Cyan
-Write-Host "|                  AGENTE-S / BOOTSTRAP WINDOWS                   |" -ForegroundColor Cyan
+Write-Host "|               CKRAFTE_TABLE / BOOTSTRAP WINDOWS                 |" -ForegroundColor Cyan
 Write-Host "|   Instalacion y verificacion (modo resumido por defecto)        |" -ForegroundColor Cyan
 Write-Host "+------------------------------------------------------------------+" -ForegroundColor Cyan
 Write-Host ""
@@ -50,8 +50,8 @@ function Invoke-Cmd {
 		}
 	}
 
-	$stdoutFile = Join-Path $env:TEMP ("agente_s_bootstrap_stdout_" + [guid]::NewGuid().ToString() + ".log")
-	$stderrFile = Join-Path $env:TEMP ("agente_s_bootstrap_stderr_" + [guid]::NewGuid().ToString() + ".log")
+	$stdoutFile = Join-Path $env:TEMP ("ckrafte_table_bootstrap_stdout_" + [guid]::NewGuid().ToString() + ".log")
+	$stderrFile = Join-Path $env:TEMP ("ckrafte_table_bootstrap_stderr_" + [guid]::NewGuid().ToString() + ".log")
 
 	try {
 		$process = Start-Process -FilePath $resolvedPath -ArgumentList $Arguments -NoNewWindow -Wait -PassThru `
@@ -107,6 +107,7 @@ Invoke-Cmd -Label "Instalar paquete editable" -FilePath "python" -Arguments @("-
 Invoke-Cmd -Label "Instalar dependencias Frontend" -FilePath "npm" -Arguments @("--prefix", "frontend", "install")
 
 Write-Host "2) Verificando Ollama y modelos recomendados..." -ForegroundColor Yellow
+$selectedModel = "llama3.2"
 if (Test-Command "ollama") {
 	Write-Host "   OK: ollama encontrado" -ForegroundColor Green
 
@@ -121,14 +122,28 @@ if (Test-Command "ollama") {
 
 	$listOutput = (ollama list | Out-String)
 	$requiredModels = @("phi3", "codellama", "starcoder2")
+	$availableRecommended = @()
 	foreach ($model in $requiredModels) {
 		if ($listOutput -match [regex]::Escape($model)) {
 			Write-Host "   OK: modelo $model" -ForegroundColor Green
+			$availableRecommended += $model
 		}
 		else {
 			Write-Host "   FALTA modelo: $model" -ForegroundColor Yellow
 			Write-Host "   Ejecuta: ollama pull $model" -ForegroundColor Yellow
 		}
+	}
+
+	if ($availableRecommended.Count -gt 0) {
+		$selectedModel = $availableRecommended[0]
+		Write-Host "   Modelo seleccionado para ejecucion: $selectedModel" -ForegroundColor Green
+	}
+	elseif ($listOutput -match "llama3\.2") {
+		$selectedModel = "llama3.2"
+		Write-Host "   Modelo seleccionado para ejecucion: $selectedModel" -ForegroundColor Green
+	}
+	else {
+		Write-Host "   AVISO: no se encontro modelo recomendado instalado; se usara '$selectedModel' por defecto" -ForegroundColor Yellow
 	}
 }
 else {
@@ -140,13 +155,13 @@ Write-Host "3) Configurando entorno local para Ollama..." -ForegroundColor Yello
 $env:OPENAI_PROVIDER = "ollama"
 $env:OPENAI_API_KEY = "ollama"
 $env:OPENAI_BASE_URL = "http://localhost:11434/v1"
-$env:OPENAI_MODEL = "phi3"
+$env:OPENAI_MODEL = $selectedModel
 $env:AGENT_MODEL_CONFIG_FILE = (Resolve-Path "shared/agent-models.json").Path
 Write-Host "   OK: entorno configurado para esta terminal" -ForegroundColor Green
 
 Write-Host "" 
 Write-Host "Listo. Siguientes pasos:" -ForegroundColor Green
-Write-Host "- Ejecuta: agente-s-start" -ForegroundColor Green
+Write-Host "- Ejecuta: ckrafte_table-start" -ForegroundColor Green
 Write-Host "- O ejecuta: python main.py --provider ollama --lang espanol" -ForegroundColor Green
 if (-not $VerboseOutput) {
 	Write-Host "- Log detallado: $logFile" -ForegroundColor DarkGray
@@ -154,6 +169,6 @@ if (-not $VerboseOutput) {
 
 if (-not $NoRun) {
 	Write-Host "" 
-	Write-Host "[AGENTE-S] Arrancando herramienta automaticamente..." -ForegroundColor Cyan
-	python main.py --provider ollama --lang espanol
+	Write-Host "[CKRAFTE_TABLE] Arrancando herramienta automaticamente..." -ForegroundColor Cyan
+	python main.py --provider ollama --lang espanol --service-mode --req "API local para biblioteca comunitaria con catalogo, prestamos y devoluciones"
 }

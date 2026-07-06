@@ -29,6 +29,10 @@ STEP_LABELS = {
 }
 
 
+def _suppress_progress() -> bool:
+    return os.getenv("CKRAFTE_SUPPRESS_PROGRESS", "0") == "1"
+
+
 def _build_progress_bar(done: int, total: int, width: int = 24) -> str:
     if total <= 0:
         return "[------------------------]"
@@ -38,6 +42,9 @@ def _build_progress_bar(done: int, total: int, width: int = 24) -> str:
 
 
 def _print_pipeline_progress(session: dict, heading: str = "Estado") -> None:
+    if _suppress_progress():
+        return
+
     steps = session.get("steps", {})
     total = len(steps)
     done = sum(1 for s in steps.values() if s == "completed")
@@ -57,9 +64,10 @@ async def _heartbeat(step_label: str, stop_event: asyncio.Event) -> None:
         await asyncio.sleep(12)
         elapsed += 12
         if not stop_event.is_set():
-            console.print(
-                f"[dim]   trabajando {step_label}... {elapsed}s transcurridos[/dim]"
-            )
+            if not _suppress_progress():
+                console.print(
+                    f"[dim]   trabajando {step_label}... {elapsed}s transcurridos[/dim]"
+                )
 
 
 def _output_path(session: dict, filename: str) -> Path:
@@ -79,7 +87,8 @@ def _load_output(session: dict, filename: str) -> str:
 
 async def _run_agent(agent, input_text: str, step_label: str,
                      session: dict, step_key: str) -> RunResult:
-    console.print(f"\n[bold cyan]>> {step_label}[/bold cyan]")
+    if not _suppress_progress():
+        console.print(f"\n[bold cyan]>> {step_label}[/bold cyan]")
     session["steps"][step_key] = "running"
     save_session(session)
     _print_pipeline_progress(session, heading="Progreso")
@@ -88,7 +97,8 @@ async def _run_agent(agent, input_text: str, step_label: str,
     heartbeat_task = asyncio.create_task(_heartbeat(step_label, stop_event))
     try:
         result = await Runner.run(agent, input=input_text)
-        console.print(f"[green]   Completado[/green]")
+        if not _suppress_progress():
+            console.print(f"[green]   Completado[/green]")
         session["steps"][step_key] = "completed"
         session["error"] = None
         save_session(session)
@@ -149,7 +159,8 @@ async def run_dev_pipeline(requirement: str, output_language: str,
     # ── 1. Project Manager ──────────────────────────────────────────────
     if session["steps"]["pm"] == "completed":
         outputs["plan"] = _load_output(session, "01_plan_tecnico.md")
-        console.print(f"\n[dim]>> 1/6  Project Manager  (ya completado, omitido)[/dim]")
+        if not _suppress_progress():
+            console.print(f"\n[dim]>> 1/6  Project Manager  (ya completado, omitido)[/dim]")
     else:
         pm_result = await _run_agent(
             project_manager,
@@ -166,14 +177,17 @@ async def run_dev_pipeline(requirement: str, output_language: str,
 
     if be_done:
         outputs["backend"] = _load_output(session, "02_backend_code.md")
-        console.print(f"\n[dim]>> 2a/6  Backend Developer  (ya completado, omitido)[/dim]")
+        if not _suppress_progress():
+            console.print(f"\n[dim]>> 2a/6  Backend Developer  (ya completado, omitido)[/dim]")
     if fe_done:
         outputs["frontend"] = _load_output(session, "03_frontend_code.md")
-        console.print(f"\n[dim]>> 2b/6  Frontend Developer  (ya completado, omitido)[/dim]")
+        if not _suppress_progress():
+            console.print(f"\n[dim]>> 2b/6  Frontend Developer  (ya completado, omitido)[/dim]")
 
     if not be_done or not fe_done:
         base = f"Requerimiento original:\n{requirement}\n\nPlan tecnico:\n{outputs['plan']}\n\nIdioma: {output_language}"
-        console.print("\n[bold yellow]>> Ejecutando Backend y Frontend en paralelo...[/bold yellow]")
+        if not _suppress_progress():
+            console.print("\n[bold yellow]>> Ejecutando Backend y Frontend en paralelo...[/bold yellow]")
         tasks = []
         if not be_done:
             tasks.append(_run_agent(backend_developer, base, "2a/6  Backend Developer - API y BD", session, "backend"))
@@ -192,7 +206,8 @@ async def run_dev_pipeline(requirement: str, output_language: str,
     # ── 3. QA Engineer ──────────────────────────────────────────────────
     if session["steps"]["qa"] == "completed":
         outputs["qa"] = _load_output(session, "04_qa_report.md")
-        console.print(f"\n[dim]>> 3/6  QA Engineer  (ya completado, omitido)[/dim]")
+        if not _suppress_progress():
+            console.print(f"\n[dim]>> 3/6  QA Engineer  (ya completado, omitido)[/dim]")
     else:
         qa_result = await _run_agent(
             qa_engineer,
@@ -207,7 +222,8 @@ async def run_dev_pipeline(requirement: str, output_language: str,
     # ── 4. Security Auditor ─────────────────────────────────────────────
     if session["steps"]["security"] == "completed":
         outputs["security"] = _load_output(session, "05_security_report.md")
-        console.print(f"\n[dim]>> 4/6  Security Auditor  (ya completado, omitido)[/dim]")
+        if not _suppress_progress():
+            console.print(f"\n[dim]>> 4/6  Security Auditor  (ya completado, omitido)[/dim]")
     else:
         sec_result = await _run_agent(
             security_auditor,
@@ -222,7 +238,8 @@ async def run_dev_pipeline(requirement: str, output_language: str,
     # ── 5. DevOps Engineer ──────────────────────────────────────────────
     if session["steps"]["devops"] == "completed":
         outputs["devops"] = _load_output(session, "06_devops_config.md")
-        console.print(f"\n[dim]>> 5/6  DevOps Engineer  (ya completado, omitido)[/dim]")
+        if not _suppress_progress():
+            console.print(f"\n[dim]>> 5/6  DevOps Engineer  (ya completado, omitido)[/dim]")
     else:
         dv_result = await _run_agent(
             devops_engineer,
@@ -237,7 +254,8 @@ async def run_dev_pipeline(requirement: str, output_language: str,
     # ── 6. Tech Writer ──────────────────────────────────────────────────
     if session["steps"]["tech_writer"] == "completed":
         outputs["docs"] = _load_output(session, "07_documentation.md")
-        console.print(f"\n[dim]>> 6/6  Tech Writer  (ya completado, omitido)[/dim]")
+        if not _suppress_progress():
+            console.print(f"\n[dim]>> 6/6  Tech Writer  (ya completado, omitido)[/dim]")
     else:
         tw_result = await _run_agent(
             tech_writer,
